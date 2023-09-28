@@ -8,37 +8,65 @@
 
 //847. Shortest Path Visiting All Nodes
 
-
-
-int shortestPathLength(vector<vector<int>>& graph) {
-        int n = graph.size();
-        map<int,vector<int> > m;
-        for(int i=0;i<n;i++) {
-            for(auto a:graph[i])
-            m[i].push_back(a);
+class Solution {
+public:
+    int shortestPathLength(vector<vector<int>>& graph) 
+    {
+        int V = graph.size();
+        queue<pair<int, int>> currLevel;
+        for (int u = 0; u < V; u++) 
+        {
+            currLevel.push({u, 1 << u});  // Start Node,Initial state
         }
         
-        queue<vector<int>> q;
-        set<vector<int>>s;
-        
-        for(int i=0;i<n;i++) {
-            q.push({i,0,(1<<i)});
-            s.insert({i,(1<<i)});
+        int allVisited = (1 << V) - 1;  // Final state
+        vector<vector<bool>> visited(V, vector<bool>(allVisited + 1, false));
+        for (int u = 0; u < V; u++) 
+        {
+            visited[u][1 << u] = true;
         }
         
-        while(q.size()) {
-            auto a = q.front();
-            q.pop();
-            if(a[2] == (1<<n)-1) {
-                return a[1];
-            }
-            for(auto nbr:m[a[0]]) {
-                int mask = a[2] | (1<<nbr);
-                if(s.find({nbr,mask})==s.end()) {
-                    s.insert({nbr,mask});
-                    q.push({nbr,a[1]+1,mask});
+        int pathLength = 0;
+        
+        while (!currLevel.empty()) 
+        {
+            int n = currLevel.size();
+            while (n > 0)  // We have to consider each point as start and check for minimum
+            {
+                pair<int, int> node = currLevel.front();
+                currLevel.pop();
+                int u = node.first;
+                int bitMask = node.second;
+                
+                if (bitMask == allVisited) 
+                {
+                    return pathLength;
                 }
+                
+                for (int v : graph[u]) 
+                {
+                    int nextBitMask = bitMask | (1 << v);
+                    
+                    if (visited[v][nextBitMask]) 
+                    {
+                        continue;
+                    }
+                    
+                    if (nextBitMask == allVisited) 
+                    {
+                        return pathLength + 1;
+                    }
+                    
+                    currLevel.push({v, nextBitMask});
+                    visited[v][nextBitMask] = true;
+                }
+                
+                n--;
             }
+            
+            pathLength++;
         }
+        
         return -1;
     }
+}; 
